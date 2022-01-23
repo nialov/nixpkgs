@@ -8049,6 +8049,8 @@ in {
 
   python-telegram-bot = callPackage ../development/python-modules/python-telegram-bot { };
 
+  python-ternary = callPackage ../development/python-modules/python-ternary { };
+
   python-toolbox = callPackage ../development/python-modules/python-toolbox { };
 
   python-twitch-client = callPackage ../development/python-modules/python-twitch-client { };
