@@ -3037,6 +3037,8 @@ in {
   fpylll = callPackage ../development/python-modules/fpylll { };
 
   fpyutils = callPackage ../development/python-modules/fpyutils { };
+  
+  fractopo = callPackage ../development/python-modules/fractopo { };
 
   freebox-api = callPackage ../development/python-modules/freebox-api { };
 
