@@ -6241,6 +6241,8 @@ in {
 
   power = callPackage ../development/python-modules/power { };
 
+  powerlaw = callPackage ../development/python-modules/powerlaw { };
+
   powerline = callPackage ../development/python-modules/powerline { };
 
   powerline-mem-segment = callPackage ../development/python-modules/powerline-mem-segment { };
