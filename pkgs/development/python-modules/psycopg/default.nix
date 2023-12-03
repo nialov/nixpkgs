@@ -2,7 +2,6 @@
 , stdenv
 , buildPythonPackage
 , fetchFromGitHub
-, fetchpatch
 , fetchurl
 , pythonOlder
 , substituteAll
@@ -35,29 +34,22 @@
 
 let
   pname = "psycopg";
-  version = "3.1.13";
+  version = "3.1.14";
 
   src = fetchFromGitHub {
     owner = "psycopg";
     repo = pname;
     rev = "refs/tags/${version}";
-    hash = "sha256-N+x8RErlId1uBgXZjBBjtPxqJXGuXZEl78DKVKjhy9w=";
+    hash = "sha256-zocRBnrQoJDWI4qhxDnxxIeiLdaWolvsujqfHBYQc/A=";
   };
 
-  patches = [
+  patchesForAll = [
     (substituteAll {
       src = ./ctypes.patch;
       libpq = "${postgresql.lib}/lib/libpq${stdenv.hostPlatform.extensions.sharedLibrary}";
       libc = "${stdenv.cc.libc}/lib/libc.so.6";
     })
 
-    (fetchpatch {
-      # fix environment variables leaking into test environment
-      # https://github.com/psycopg/psycopg/pull/683
-      # https://github.com/psycopg/psycopg/issues/681
-      url = "https://github.com/psycopg/psycopg/commit/f060855aa6126e811de243c7213d2caff9c88123.patch";
-      hash = "sha256-QsFxK8Qasw9kbNCUUCqbOHaf53kT5NONlr28vGoPda0=";
-    })
   ];
 
   baseMeta = {
@@ -73,7 +65,7 @@ let
     format = "pyproject";
 
     # apply patches to base repo
-    inherit patches;
+    patches = patchesForAll;
 
     # move into source root after patching
     postPatch = ''
@@ -101,7 +93,7 @@ let
     format = "setuptools";
 
     # apply patches to base repo
-    inherit patches;
+    patches = patchesForAll;
 
     # move into source root after patching
     postPatch = ''
@@ -141,7 +133,7 @@ buildPythonPackage rec {
     hash = "sha256-yn09fR9+7zQni8SvTG7BUmYRD7MK7u2arVAznWz2oAw=";
   };
 
-  inherit patches;
+  patches = patchesForAll;
 
   # only move to sourceRoot after patching, makes patching easier
   postPatch = ''
@@ -161,7 +153,8 @@ buildPythonPackage rec {
     typing-extensions
   ] ++ lib.optionals (pythonOlder "3.9") [
     backports-zoneinfo
-  ];
+  ] ++ passthru.optional-dependencies.c
+    ++ passthru.optional-dependencies.pool;
 
   pythonImportsCheck = [
     "psycopg"
@@ -181,9 +174,7 @@ buildPythonPackage rec {
     pytestCheckHook
     postgresql
   ]
-  ++ lib.optional (stdenv.isLinux) postgresqlTestHook
-  ++ passthru.optional-dependencies.c
-  ++ passthru.optional-dependencies.pool;
+  ++ lib.optional (stdenv.isLinux) postgresqlTestHook;
 
   env = {
     postgresqlEnableTCP = 1;
@@ -210,6 +201,11 @@ buildPythonPackage rec {
     # Mypy typing test
     "tests/test_typing.py"
     "tests/crdb/test_typing.py"
+    # Flaky tests
+    # See: https://github.com/psycopg/psycopg/issues/692
+    "tests/test_copy_async.py"
+    "tests/test_client_cursor_async.py"
+    "tests/test_cursor_async.py"
   ];
 
   pytestFlagsArray = [
