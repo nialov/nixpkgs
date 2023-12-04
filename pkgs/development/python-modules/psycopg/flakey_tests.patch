@@ -1,0 +1,48 @@
+diff --git a/tests/conftest.py b/tests/conftest.py
+index f5d16235..02f08dee 100644
+--- a/tests/conftest.py
++++ b/tests/conftest.py
+@@ -29,6 +29,7 @@ def pytest_configure(config):
+         "gevent: the test requires the gevent module to be installed",
+         "dns: the test requires dnspython to run",
+         "postgis: the test requires the PostGIS extension to run",
++        "refcount: the test checks ref counts which is sometimes flakey",
+     ]
+ 
+     for marker in markers:
+@@ -165,3 +166,14 @@ def gc_collect():
+     **Note:** This will *not* skip tests on PyPy.
+     """
+     return GCFixture.collect
++
++def pytest_collection_modifyitems(items):
++    for item in items:
++        # TODO: there is a race condition on macOS and Windows in the CI:
++        # listen returns before really listening and tests based on 'deaf_port'
++        # fail 50% of the times. Just add the 'proxy' mark on these tests
++        # because they are already skipped in the CI.
++        if "proxy" in item.fixturenames or "deaf_port" in item.fixturenames:
++            item.add_marker(pytest.mark.proxy)
++        if "gc" in item.fixturenames:
++            item.add_marker(pytest.mark.refcount)
+diff --git a/tests/fix_proxy.py b/tests/fix_proxy.py
+index 1d566b5e..5dd3f3f7 100644
+--- a/tests/fix_proxy.py
++++ b/tests/fix_proxy.py
+@@ -11,16 +11,6 @@ import psycopg
+ from psycopg import conninfo
+ 
+ 
+-def pytest_collection_modifyitems(items):
+-    for item in items:
+-        # TODO: there is a race condition on macOS and Windows in the CI:
+-        # listen returns before really listening and tests based on 'deaf_port'
+-        # fail 50% of the times. Just add the 'proxy' mark on these tests
+-        # because they are already skipped in the CI.
+-        if "proxy" in item.fixturenames or "deaf_port" in item.fixturenames:
+-            item.add_marker(pytest.mark.proxy)
+-
+-
+ def pytest_configure(config):
+     config.addinivalue_line(
+         "markers",

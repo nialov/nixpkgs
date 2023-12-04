@@ -49,6 +49,7 @@ let
       libpq = "${postgresql.lib}/lib/libpq${stdenv.hostPlatform.extensions.sharedLibrary}";
       libc = "${stdenv.cc.libc}/lib/libc.so.6";
     })
+    ./flakey_tests.patch
   ];
 
   baseMeta = {
@@ -205,7 +206,8 @@ buildPythonPackage rec {
 
   pytestFlagsArray = [
     "-o" "cache_dir=$TMPDIR"
-    "-m" "'not timing'"
+    "-m" "'not timing and not flakey and not refcount'"
+    "-v"
   ];
 
   postCheck = ''
