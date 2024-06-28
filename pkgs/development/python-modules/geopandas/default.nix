@@ -14,6 +14,16 @@
   pyproj,
   rtree,
   shapely,
+
+  sqlalchemy,
+  geopy,
+  matplotlib,
+  mapclassify,
+  xyzservices,
+  folium,
+  geoalchemy2,
+  pyarrow,
+  psycopg,
 }:
 
 buildPythonPackage rec {
@@ -53,6 +63,20 @@ buildPythonPackage rec {
     pyproj
     shapely
   ];
+
+  passthru.optional-dependencies = {
+    all = [
+      psycopg
+      sqlalchemy
+      geopy
+      matplotlib
+      mapclassify
+      xyzservices
+      folium
+      geoalchemy2
+      pyarrow
+    ];
+  };
 
   nativeCheckInputs = [
     pytestCheckHook
